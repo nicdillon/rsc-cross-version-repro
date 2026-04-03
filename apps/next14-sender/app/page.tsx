@@ -1,5 +1,8 @@
 import Link from 'next/link'
 
+// Force dynamic rendering so the env var is read at request time
+export const dynamic = 'force-dynamic'
+
 export default function HomePage() {
   const receiverUrl = process.env.NEXT16_RECEIVER_URL || 'http://localhost:3001'
 
