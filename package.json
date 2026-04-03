@@ -1,0 +1,13 @@
+{
+  "name": "rsc-cross-version-repro",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev"
+  },
+  "devDependencies": {
+    "turbo": "^2"
+  },
+  "packageManager": "npm@10.9.4"
+}
