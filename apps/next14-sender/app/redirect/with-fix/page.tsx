@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 export const dynamic = 'force-dynamic'
 
 export default function RedirectWithFix() {
-  const receiverUrl = process.env.NEXT16_RECEIVER_URL || 'http://localhost:3001'
-  redirect(`${receiverUrl}/with-fix`)
+  // Redirect to a same-origin path that is rewritten (proxied) to the Next 16 receiver.
+  // The Next 16 middleware on /with-fix strips the incompatible RSC headers,
+  // forcing a clean full-page load and avoiding the 500 error.
+  redirect('/receiver/with-fix')
 }
