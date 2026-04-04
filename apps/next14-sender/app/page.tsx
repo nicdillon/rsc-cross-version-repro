@@ -28,9 +28,9 @@ export default function HomePage() {
       </h1>
 
       <p style={{ fontSize: 16, lineHeight: 1.6, color: '#666', margin: '0 0 32px' }}>
-        This app simulates a Next.js 14 application that performs server-side redirects
-        to a Next.js 16 application. Click the links below to trigger client-side navigations
-        that will carry RSC headers across the redirect boundary.
+        This app simulates a Next.js 14 application behind the same domain as a
+        Next.js 16 application (via rewrites). Click the links below to trigger
+        client-side navigations that carry RSC headers to the Next 16 app.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -44,11 +44,11 @@ export default function HomePage() {
             Test WITHOUT Fix
           </h2>
           <p style={{ fontSize: 14, color: '#666', margin: '0 0 16px', lineHeight: 1.5 }}>
-            Redirects to an unprotected Next 16 route. The incompatible <code>Next-Router-State-Tree</code> header
-            will cause a <strong>500 Internal Server Error</strong>.
+            Navigates to an unprotected Next 16 route via same-origin rewrite. The incompatible{' '}
+            <code>Next-Router-State-Tree</code> header will cause a <strong>500 Internal Server Error</strong>.
           </p>
           <Link
-            href="/redirect/no-fix"
+            href="/receiver/no-fix"
             style={{
               display: 'inline-block',
               padding: '10px 20px',
@@ -74,11 +74,11 @@ export default function HomePage() {
             Test WITH Fix
           </h2>
           <p style={{ fontSize: 14, color: '#666', margin: '0 0 16px', lineHeight: 1.5 }}>
-            Redirects to a protected Next 16 route where middleware strips incompatible RSC headers.
+            Navigates to a protected Next 16 route where middleware strips incompatible RSC headers.
             This will return a <strong>200 OK</strong> with a full page load.
           </p>
           <Link
-            href="/redirect/with-fix"
+            href="/receiver/with-fix"
             style={{
               display: 'inline-block',
               padding: '10px 20px',
@@ -104,9 +104,10 @@ export default function HomePage() {
         color: '#666',
         lineHeight: 1.5,
       }}>
-        <strong>How it works:</strong> When you click a link, Next.js 14's client router sends an RSC
-        request with a <code>Next-Router-State-Tree</code> header. The server responds with an RSC redirect
-        payload. The client follows the redirect to the Next 16 app, carrying the incompatible header.
+        <strong>How it works:</strong> When you click a link, Next.js 14{"'"}s client router sends an RSC
+        fetch with a <code>Next-Router-State-Tree</code> header. The <code>beforeFiles</code> rewrite
+        proxies the request to the Next 16 app, which receives the incompatible header and fails
+        to parse it — triggering the 500 error.
         <br /><br />
         <strong>Receiver URL:</strong> <code>{receiverUrl}</code>
       </div>
