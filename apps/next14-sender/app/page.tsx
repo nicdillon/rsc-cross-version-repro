@@ -29,8 +29,9 @@ export default function HomePage() {
 
       <p style={{ fontSize: 16, lineHeight: 1.6, color: '#666', margin: '0 0 32px' }}>
         This app simulates a Next.js 14 application behind the same domain as a
-        Next.js 16 application (via rewrites). Click the links below to trigger
-        client-side navigations that carry RSC headers to the Next 16 app.
+        Next.js 16 application (via Vercel rewrites). The two tests below show how
+        a dummy route in the sender{"'"}s route manifest causes the client router to
+        send incompatible RSC headers to the Next 16 app.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -41,11 +42,13 @@ export default function HomePage() {
           background: '#fff',
         }}>
           <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px', color: '#dc2626' }}>
-            Test WITHOUT Fix
+            Bug: RSC Navigation (500)
           </h2>
           <p style={{ fontSize: 14, color: '#666', margin: '0 0 16px', lineHeight: 1.5 }}>
-            Navigates to an unprotected Next 16 route via same-origin rewrite. The incompatible{' '}
-            <code>Next-Router-State-Tree</code> header will cause a <strong>500 Internal Server Error</strong>.
+            A dummy <code>page.tsx</code> exists at <code>/receiver/no-fix</code> in the sender,
+            so the client router treats it as a known route and sends an RSC fetch with{' '}
+            <code>Next-Router-State-Tree</code>. The rewrite proxies this to the Next 16 app,
+            which fails to parse the v14 header format — <strong>500 Internal Server Error</strong>.
           </p>
           <Link
             href="/receiver/no-fix"
@@ -72,11 +75,12 @@ export default function HomePage() {
           background: '#fff',
         }}>
           <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px', color: '#16a34a' }}>
-            Test WITH Fix
+            Fix: Full Page Navigation (200)
           </h2>
           <p style={{ fontSize: 14, color: '#666', margin: '0 0 16px', lineHeight: 1.5 }}>
-            Navigates to a protected Next 16 route where middleware strips incompatible RSC headers.
-            This will return a <strong>200 OK</strong> with a full page load.
+            No dummy <code>page.tsx</code> exists at <code>/receiver/with-fix</code> in the sender,
+            so the client router does not recognize the path and falls back to a full page navigation
+            (no RSC headers). The rewrite proxies a clean request — <strong>200 OK</strong>.
           </p>
           <Link
             href="/receiver/with-fix"
@@ -106,10 +110,18 @@ export default function HomePage() {
         color: '#666',
         lineHeight: 1.5,
       }}>
-        <strong>How it works:</strong> When you click a link, Next.js 14{"'"}s client router sends an RSC
-        fetch with a <code>Next-Router-State-Tree</code> header. The <code>beforeFiles</code> rewrite
-        proxies the request to the Next 16 app, which receives the incompatible header and fails
-        to parse it — triggering the 500 error.
+        <strong>How it works:</strong> The Next 14 client router sends RSC headers only for paths it
+        recognizes in its route manifest. A dummy <code>page.tsx</code> in the sender registers
+        the path, causing the client to send <code>Next-Router-State-Tree</code> on navigation.
+        The Vercel rewrite proxies the request (with headers) to the Next 16 app. Next 16
+        cannot parse the v14 header format (boolean vs number in the 5th tuple element)
+        and throws: <em>&quot;The router state header was sent but could not be parsed.&quot;</em>
+        <br /><br />
+        <strong>Why middleware can{"'"}t fix this:</strong> Next.js{"'"}s <code>adapter.js</code> force-restores
+        all flight headers (<code>rsc</code>, <code>next-router-state-tree</code>, etc.) after
+        middleware returns — they are explicitly marked as &quot;not overridable / removable.&quot;
+        The fix must happen outside Next.js: either at the CDN/proxy layer (strip headers)
+        or by ensuring the client router doesn{"'"}t treat cross-app paths as known routes.
         <br /><br />
         <strong>Receiver URL:</strong> <code>{receiverUrl}</code>
       </div>
