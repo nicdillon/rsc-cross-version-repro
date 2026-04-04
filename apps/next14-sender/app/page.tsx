@@ -78,13 +78,12 @@ export default function HomePage() {
             Fix: Full Page Navigation (200)
           </h2>
           <p style={{ fontSize: 14, color: '#666', margin: '0 0 16px', lineHeight: 1.5 }}>
-            No dummy <code>page.tsx</code> exists at <code>/receiver/with-fix</code> in the sender,
-            so the client router does not recognize the path and falls back to a full page navigation
-            (no RSC headers). The rewrite proxies a clean request — <strong>200 OK</strong>.
+            Uses a plain <code>&lt;a&gt;</code> tag instead of <code>&lt;Link&gt;</code>, which
+            bypasses the client router entirely and triggers a full page navigation (no RSC headers).
+            The rewrite proxies a clean request — <strong>200 OK</strong>.
           </p>
-          <Link
+          <a
             href="/receiver/with-fix"
-            prefetch={false}
             style={{
               display: 'inline-block',
               padding: '10px 20px',
@@ -96,8 +95,8 @@ export default function HomePage() {
               fontWeight: 500,
             }}
           >
-            Trigger Redirect → 200 OK
-          </Link>
+            Full Page Navigation → 200 OK
+          </a>
         </div>
       </div>
 
