@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/receiver/:path*",
+      "destination": "https://rsc-cross-version-repro-next16-rece.vercel.app/:path*"
+    }
+  ]
+}
