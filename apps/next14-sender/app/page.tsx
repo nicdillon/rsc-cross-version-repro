@@ -49,6 +49,7 @@ export default function HomePage() {
           </p>
           <Link
             href="/receiver/no-fix"
+            prefetch={false}
             style={{
               display: 'inline-block',
               padding: '10px 20px',
@@ -79,6 +80,7 @@ export default function HomePage() {
           </p>
           <Link
             href="/receiver/with-fix"
+            prefetch={false}
             style={{
               display: 'inline-block',
               padding: '10px 20px',
