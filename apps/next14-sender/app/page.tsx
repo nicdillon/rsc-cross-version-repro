@@ -28,10 +28,10 @@ export default function HomePage() {
       </h1>
 
       <p style={{ fontSize: 16, lineHeight: 1.6, color: '#666', margin: '0 0 32px' }}>
-        This app simulates a Next.js 14 application behind the same domain as a
-        Next.js 16 application (via Vercel rewrites). The two tests below show how
-        a dummy route in the sender{"'"}s route manifest causes the client router to
-        send incompatible RSC headers to the Next 16 app.
+        This app simulates the customer{"'"}s scenario: a Next.js 14 page component
+        calls <code>redirect()</code> to a path served by a Next.js 16 app (via Vercel
+        rewrites). After the server-side redirect, the client router follows up with
+        an RSC fetch — sending incompatible v14 headers to the Next 16 app.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -42,16 +42,19 @@ export default function HomePage() {
           background: '#fff',
         }}>
           <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px', color: '#dc2626' }}>
-            Bug: RSC Navigation (500)
+            Bug: Server Redirect → RSC Navigation (500)
           </h2>
           <p style={{ fontSize: 14, color: '#666', margin: '0 0 16px', lineHeight: 1.5 }}>
-            A dummy <code>page.tsx</code> exists at <code>/receiver/no-fix</code> in the sender,
-            so the client router treats it as a known route and sends an RSC fetch with{' '}
-            <code>Next-Router-State-Tree</code>. The rewrite proxies this to the Next 16 app,
-            which fails to parse the v14 header format — <strong>500 Internal Server Error</strong>.
+            Navigates to <code>/redirect/no-fix</code>, which calls{' '}
+            <code>redirect({`'/receiver/no-fix'`})</code> server-side. Because a dummy{' '}
+            <code>page.tsx</code> exists at <code>/receiver/no-fix</code> in the sender,
+            the client router treats the redirected path as a known route and sends an RSC
+            fetch with <code>Next-Router-State-Tree</code>. The rewrite proxies this to the
+            Next 16 app, which fails to parse the v14 header format —{' '}
+            <strong>500 Internal Server Error</strong>.
           </p>
           <Link
-            href="/receiver/no-fix"
+            href="/redirect/no-fix"
             prefetch={false}
             style={{
               display: 'inline-block',
@@ -64,7 +67,7 @@ export default function HomePage() {
               fontWeight: 500,
             }}
           >
-            Trigger Redirect → 500 Error
+            Test WITHOUT Fix → 500 Error
           </Link>
         </div>
 
@@ -75,15 +78,17 @@ export default function HomePage() {
           background: '#fff',
         }}>
           <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px', color: '#16a34a' }}>
-            Fix: Full Page Navigation (200)
+            Fix: Server Redirect → Headers Stripped (200)
           </h2>
           <p style={{ fontSize: 14, color: '#666', margin: '0 0 16px', lineHeight: 1.5 }}>
-            Uses a plain <code>&lt;a&gt;</code> tag instead of <code>&lt;Link&gt;</code>, which
-            bypasses the client router entirely and triggers a full page navigation (no RSC headers).
-            The rewrite proxies a clean request — <strong>200 OK</strong>.
+            Navigates to <code>/redirect/with-fix</code>, which calls{' '}
+            <code>redirect({`'/receiver/with-fix'`})</code> server-side. The receiver{"'"}s
+            middleware strips the incompatible RSC headers before they reach the Next 16
+            renderer, forcing a clean full-page load — <strong>200 OK</strong>.
           </p>
-          <a
-            href="/receiver/with-fix"
+          <Link
+            href="/redirect/with-fix"
+            prefetch={false}
             style={{
               display: 'inline-block',
               padding: '10px 20px',
@@ -95,8 +100,8 @@ export default function HomePage() {
               fontWeight: 500,
             }}
           >
-            Full Page Navigation → 200 OK
-          </a>
+            Test WITH Fix → 200 OK
+          </Link>
         </div>
       </div>
 
@@ -109,18 +114,21 @@ export default function HomePage() {
         color: '#666',
         lineHeight: 1.5,
       }}>
-        <strong>How it works:</strong> The Next 14 client router sends RSC headers only for paths it
-        recognizes in its route manifest. A dummy <code>page.tsx</code> in the sender registers
-        the path, causing the client to send <code>Next-Router-State-Tree</code> on navigation.
-        The Vercel rewrite proxies the request (with headers) to the Next 16 app. Next 16
-        cannot parse the v14 header format (boolean vs number in the 5th tuple element)
-        and throws: <em>&quot;The router state header was sent but could not be parsed.&quot;</em>
+        <strong>How it works:</strong> Both buttons use <code>&lt;Link&gt;</code> to a{' '}
+        <code>/redirect/*</code> page that calls <code>redirect()</code> server-side to{' '}
+        <code>/receiver/*</code>. Dummy <code>page.tsx</code> files in the sender register
+        the <code>/receiver/*</code> paths in the client router{"'"}s route manifest, so after
+        the redirect the client sends <code>Next-Router-State-Tree</code> headers. The Vercel
+        rewrite proxies the request (with headers) to the Next 16 app. Next 16 cannot parse
+        the v14 header format and throws:{' '}
+        <em>&quot;The router state header was sent but could not be parsed.&quot;</em>
         <br /><br />
-        <strong>Why middleware can{"'"}t fix this:</strong> Next.js{"'"}s <code>adapter.js</code> force-restores
-        all flight headers (<code>rsc</code>, <code>next-router-state-tree</code>, etc.) after
-        middleware returns — they are explicitly marked as &quot;not overridable / removable.&quot;
-        The fix must happen outside Next.js: either at the CDN/proxy layer (strip headers)
-        or by ensuring the client router doesn{"'"}t treat cross-app paths as known routes.
+        <strong>Why middleware can{"'"}t fix this on the sender:</strong> Next.js{"'"}s{' '}
+        <code>adapter.js</code> force-restores all flight headers (<code>rsc</code>,{' '}
+        <code>next-router-state-tree</code>, etc.) after middleware returns — they are
+        explicitly marked as &quot;not overridable / removable.&quot; The fix must happen
+        outside the sender{"'"}s Next.js: either at the CDN/proxy layer or via middleware on
+        the receiver that strips headers before they reach the renderer.
         <br /><br />
         <strong>Receiver URL:</strong> <code>{receiverUrl}</code>
       </div>
