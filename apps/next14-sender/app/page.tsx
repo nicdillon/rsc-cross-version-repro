@@ -78,13 +78,14 @@ export default function HomePage() {
           background: '#fff',
         }}>
           <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px', color: '#16a34a' }}>
-            Fix: Server Redirect → Headers Stripped (200)
+            Fix: Server Redirect → Full Page Navigation (200)
           </h2>
           <p style={{ fontSize: 14, color: '#666', margin: '0 0 16px', lineHeight: 1.5 }}>
             Navigates to <code>/redirect/with-fix</code>, which calls{' '}
-            <code>redirect({`'/receiver/with-fix'`})</code> server-side. The receiver{"'"}s
-            middleware strips the incompatible RSC headers before they reach the Next 16
-            renderer, forcing a clean full-page load — <strong>200 OK</strong>.
+            <code>redirect({`'/receiver/with-fix'`})</code> server-side. No dummy{' '}
+            <code>page.tsx</code> exists at <code>/receiver/with-fix</code> in the sender,
+            so the client router does not recognize the redirected path — it falls back to
+            a full page navigation (no RSC headers) — <strong>200 OK</strong>.
           </p>
           <Link
             href="/redirect/with-fix"
