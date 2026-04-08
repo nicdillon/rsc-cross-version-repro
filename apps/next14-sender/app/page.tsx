@@ -24,90 +24,60 @@ export default function HomePage() {
       </div>
 
       <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 12px' }}>
-        RSC Cross-Version Redirect Demo
+        RSC Cross-Version Bug Reproduction
       </h1>
 
       <p style={{ fontSize: 16, lineHeight: 1.6, color: '#666', margin: '0 0 32px' }}>
-        This app simulates the customer{"'"}s scenario: a Next.js 14 page component
-        calls <code>redirect()</code> to a path served by a Next.js 16 app (via Vercel
-        rewrites). After the server-side redirect, the client router follows up with
-        an RSC fetch — sending incompatible v14 headers to the Next 16 app.
+        This Next.js 14 app shares a domain with a Next.js 16 app (via Vercel rewrites).
+        A server-side <code>redirect()</code> sends the user to a path served by the
+        Next 16 app. The client router follows the redirect with an RSC fetch containing
+        v14-format headers that Next 16 cannot parse, causing a <strong>500 Internal
+        Server Error</strong>.
       </p>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div style={{
-          border: '1px solid #fee2e2',
-          borderRadius: 8,
-          padding: 24,
-          background: '#fff',
-        }}>
-          <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px', color: '#dc2626' }}>
-            Bug: Server Redirect → RSC Navigation (500)
-          </h2>
-          <p style={{ fontSize: 14, color: '#666', margin: '0 0 16px', lineHeight: 1.5 }}>
-            Navigates to <code>/redirect/no-fix</code>, which calls{' '}
-            <code>redirect({`'/receiver/no-fix'`})</code> server-side. Because a dummy{' '}
-            <code>page.tsx</code> exists at <code>/receiver/no-fix</code> in the sender,
-            the client router treats the redirected path as a known route and sends an RSC
-            fetch with <code>Next-Router-State-Tree</code>. The rewrite proxies this to the
-            Next 16 app, which fails to parse the v14 header format —{' '}
-            <strong>500 Internal Server Error</strong>.
-          </p>
-          <Link
-            href="/redirect/no-fix"
-            prefetch={false}
-            style={{
-              display: 'inline-block',
-              padding: '10px 20px',
-              background: '#dc2626',
-              color: '#fff',
-              borderRadius: 6,
-              textDecoration: 'none',
-              fontSize: 14,
-              fontWeight: 500,
-            }}
-          >
-            Test WITHOUT Fix → 500 Error
-          </Link>
-        </div>
-
-        <div style={{
-          border: '1px solid #bbf7d0',
-          borderRadius: 8,
-          padding: 24,
-          background: '#fff',
-        }}>
-          <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px', color: '#16a34a' }}>
-            Fix: Server Redirect → Full Page Navigation (200)
-          </h2>
-          <p style={{ fontSize: 14, color: '#666', margin: '0 0 16px', lineHeight: 1.5 }}>
-            Navigates to <code>/redirect/with-fix</code>, which calls{' '}
-            <code>redirect({`'/receiver/with-fix'`})</code> server-side. No dummy{' '}
-            <code>page.tsx</code> exists at <code>/receiver/with-fix</code> in the sender,
-            so the client router does not recognize the redirected path — it falls back to
-            a full page navigation (no RSC headers) — <strong>200 OK</strong>.
-          </p>
-          <Link
-            href="/redirect/with-fix"
-            prefetch={false}
-            style={{
-              display: 'inline-block',
-              padding: '10px 20px',
-              background: '#16a34a',
-              color: '#fff',
-              borderRadius: 6,
-              textDecoration: 'none',
-              fontSize: 14,
-              fontWeight: 500,
-            }}
-          >
-            Test WITH Fix → 200 OK
-          </Link>
-        </div>
+      <div style={{
+        border: '1px solid #fee2e2',
+        borderRadius: 8,
+        padding: 24,
+        background: '#fff',
+      }}>
+        <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px', color: '#dc2626' }}>
+          Reproduce the Bug
+        </h2>
+        <p style={{ fontSize: 14, color: '#666', margin: '0 0 16px', lineHeight: 1.5 }}>
+          Navigates to <code>/redirect</code>, a page component that calls{' '}
+          <code>redirect({`'/receiver'`})</code>. The server responds with a 307 to{' '}
+          <code>/receiver</code>, which is rewritten to the Next 16 app. A dummy{' '}
+          <code>page.tsx</code> at <code>/receiver</code> in this app registers the path
+          in the client router{"'"}s route manifest, so the client sends RSC headers ({' '}
+          <code>RSC: 1</code>, <code>Next-Router-State-Tree</code>) on the follow-up
+          request. Next 16 fails to parse the v14 header format and returns a 500.
+        </p>
+        <p style={{ fontSize: 14, color: '#666', margin: '0 0 16px', lineHeight: 1.5 }}>
+          Open DevTools → Network tab before clicking. Look for the request to{' '}
+          <code>/receiver</code> — it will have RSC headers and return a 500. The client
+          router then retries as a full page navigation (no RSC headers) and gets a 200.
+        </p>
+        <Link
+          href="/redirect"
+          prefetch={false}
+          style={{
+            display: 'inline-block',
+            padding: '10px 20px',
+            background: '#dc2626',
+            color: '#fff',
+            borderRadius: 6,
+            textDecoration: 'none',
+            fontSize: 14,
+            fontWeight: 500,
+          }}
+        >
+          Trigger Server Redirect → 500
+        </Link>
       </div>
 
       <div style={{
-        marginTop: 32,
+        marginTop: 24,
         padding: 16,
         background: '#f5f5f5',
         borderRadius: 8,
@@ -115,21 +85,18 @@ export default function HomePage() {
         color: '#666',
         lineHeight: 1.5,
       }}>
-        <strong>How it works:</strong> Both buttons use <code>&lt;Link&gt;</code> to a{' '}
-        <code>/redirect/*</code> page that calls <code>redirect()</code> server-side to{' '}
-        <code>/receiver/*</code>. Dummy <code>page.tsx</code> files in the sender register
-        the <code>/receiver/*</code> paths in the client router{"'"}s route manifest, so after
-        the redirect the client sends <code>Next-Router-State-Tree</code> headers. The Vercel
-        rewrite proxies the request (with headers) to the Next 16 app. Next 16 cannot parse
-        the v14 header format and throws:{' '}
+        <strong>Root cause:</strong> The <code>Next-Router-State-Tree</code> header schema
+        changed between Next 14 and 16. The 5th tuple element is{' '}
+        <code>optional(boolean())</code> in v14 but <code>optional(number())</code> in v16.{' '}
+        <code>parseAndValidateFlightRouterState()</code> in Next 16 throws when it receives
+        the v14 format:{' '}
         <em>&quot;The router state header was sent but could not be parsed.&quot;</em>
         <br /><br />
-        <strong>Why middleware can{"'"}t fix this on the sender:</strong> Next.js{"'"}s{' '}
-        <code>adapter.js</code> force-restores all flight headers (<code>rsc</code>,{' '}
+        <strong>Why middleware can{"'"}t fix this:</strong> Next.js{"'"}s <code>adapter.js</code>{' '}
+        force-restores all flight headers (<code>rsc</code>,{' '}
         <code>next-router-state-tree</code>, etc.) after middleware returns — they are
-        explicitly marked as &quot;not overridable / removable.&quot; The fix must happen
-        outside the sender{"'"}s Next.js: either at the CDN/proxy layer or via middleware on
-        the receiver that strips headers before they reach the renderer.
+        explicitly marked as &quot;not overridable / removable.&quot; No Next.js middleware
+        on either app can strip these headers.
         <br /><br />
         <strong>Receiver URL:</strong> <code>{receiverUrl}</code>
       </div>
