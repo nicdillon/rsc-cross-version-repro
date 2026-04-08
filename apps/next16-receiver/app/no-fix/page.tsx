@@ -1,7 +1,8 @@
 import { headers } from 'next/headers'
 
-// Force dynamic rendering so the RSC header is parsed at request time
-export const dynamic = 'force-dynamic'
+// Use ISR with a short revalidation period to demonstrate how a cached 500
+// from a failed RSC parse persists and blocks even clean (non-RSC) requests.
+export const revalidate = 30
 
 export default async function NoFixPage() {
   const headersList = await headers()
