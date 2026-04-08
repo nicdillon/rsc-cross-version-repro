@@ -23,14 +23,16 @@ export default async function NoFixPage() {
       </div>
 
       <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 12px' }}>
-        /no-fix Route (No Protection)
+        Next 16 Receiver — /no-fix
       </h1>
 
       <p style={{ fontSize: 14, lineHeight: 1.6, color: '#666', margin: '0 0 24px' }}>
-        If you see this page, the request did NOT carry incompatible RSC headers.
-        When accessed via a client-side redirect from the Next 14 app, this route will
-        return a <strong>500 error</strong> because the <code>Next-Router-State-Tree</code> header
-        from Next 14 fails schema validation in Next 16.
+        If you see this page, the request did not carry incompatible RSC headers.
+        When accessed via a server-side <code>redirect()</code> from the Next 14 sender
+        app, the initial RSC fetch returns a <strong>500 error</strong> because
+        the <code>Next-Router-State-Tree</code> header from Next 14 fails schema
+        validation in Next 16. The client router then retries as a full page
+        navigation (no RSC headers) and this page loads normally.
       </p>
 
       <div style={{
