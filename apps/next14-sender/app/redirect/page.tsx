@@ -9,5 +9,5 @@ export default function RedirectPage() {
   // (RSC: 1, Next-Router-State-Tree, etc.) because a dummy page.tsx
   // at /receiver/no-fix registers the path in the route manifest.
   // Next 16 cannot parse the v14-format headers → 500.
-  redirect('/receiver/no-fix/bug')
+  redirect('/receiver/no-fix')
 }
