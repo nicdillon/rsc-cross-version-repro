@@ -46,16 +46,16 @@ export default function HomePage() {
         </h2>
         <p style={{ fontSize: 14, color: '#666', margin: '0 0 16px', lineHeight: 1.5 }}>
           Navigates to <code>/redirect</code>, a page component that calls{' '}
-          <code>redirect({`'/receiver/bug'`})</code>. The server responds with a 307 to{' '}
-          <code>/receiver/bug</code>, which is rewritten to the Next 16 app. A dummy{' '}
-          <code>page.tsx</code> at <code>/receiver/bug</code> in this app registers the path
+          <code>redirect({`'/receiver/no-fix'`})</code>. The server responds with a 307 to{' '}
+          <code>/receiver/no-fix</code>, which is rewritten to the Next 16 app. A dummy{' '}
+          <code>page.tsx</code> at <code>/receiver/no-fix</code> in this app registers the path
           in the client router{"'"}s route manifest, so the client sends RSC headers ({' '}
           <code>RSC: 1</code>, <code>Next-Router-State-Tree</code>) on the follow-up
           request. Next 16 fails to parse the v14 header format and returns a 500.
         </p>
         <p style={{ fontSize: 14, color: '#666', margin: '0 0 16px', lineHeight: 1.5 }}>
           Open DevTools → Network tab before clicking. Look for the request to{' '}
-          <code>/receiver/bug</code> — it will have RSC headers and return a 500. The client
+          <code>/receiver/no-fix</code> — it will have RSC headers and return a 500. The client
           router then retries as a full page navigation (no RSC headers) and gets a 200.
         </p>
         <Link

@@ -1,7 +1,7 @@
-// Dummy route: registers /receiver/bug in the Next 14 client router's route manifest.
+// Dummy route: registers /receiver/no-fix in the Next 14 client router's route manifest.
 // The beforeFiles rewrite in next.config.js proxies /receiver/* to the Next 16 app
 // before this page is ever served. Without this file, the client router would not
-// recognize /receiver/bug as a known route and would skip sending RSC headers.
+// recognize /receiver/no-fix as a known route and would skip sending RSC headers.
 export default function Placeholder() {
   return null
 }
